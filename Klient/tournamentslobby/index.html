@@ -1,0 +1,178 @@
+<html>
+<head>
+<script type="text/javascript" src="../js/connection_functions.js"></script>
+</head>
+<body>
+
+<style>
+.tourrow:hover {
+	background-color: #F4BC8D !important;
+}
+</style>
+
+<div style="width:1200;height:400px;display:block">
+	<div style="width:1200;position:relative">
+		<div style="width:10%;display:inline-block;border:1px;border-color:#fff">ID</div>
+		<div style="width:10%;display:inline-block;border:1px;border-color:#fff">Czas</div>
+		<div style="width:10%;display:inline-block;border:1px;border-color:#fff">Rund</div>
+		<div style="width:10%;display:inline-block;border:1px;border-color:#fff">Status</div>
+		<div style="width:10%;display:inline-block;border:1px;border-color:#fff">Pula</div>
+		<div style="width:10%;display:inline-block;border:1px;border-color:#fff">Rozegrano</div>
+		<div style="width:10%;display:inline-block;border:1px;border-color:#fff">Czas</div>
+		<div style="width:10%;display:inline-block;border:1px;border-color:#fff">Graczy</div>
+		<div style="width:10%;display:inline-block;border:1px;border-color:#fff">Rejestracja</div>
+	</div>
+	<div id="tournaments" style="width:1200;height:400px;overflow-y: scroll;vertical-align: top;">
+	
+	</div>
+
+</div>
+
+<div style="clear:both"></div>
+
+
+<script>
+
+		establish_connection();
+		
+		ws.onmessage = function (event) {
+			var obj = JSON.parse(event.data);
+			
+			console.log(obj)
+			
+			if(obj["type"] == "connected")
+			{
+				connected(obj['connectionId']);
+				givefirstinfo();
+			}
+			if(obj["type"] == "ping")
+			{
+				sendPong();
+			}
+			
+			if(obj['type']=='tournamentslobby' && obj['action']=='firstinfo')
+			{
+				firstinfo(obj);
+			}
+			 
+			if(obj['type']=='tournamentslobby' && obj['action']=='newgame')
+			{
+				newgame(obj);
+			}
+
+		}
+		
+		window.onbeforeunload = removeWarcher;
+
+
+function removeWarcher() {
+			ws.send(JSON.stringify({
+			'connectionId':connectionId,
+			'type':'tournamentslobby',
+			'action':'removewatcher'
+			}));
+}
+
+function givefirstinfo() {
+			ws.send(JSON.stringify({
+			'connectionId':connectionId,
+			'type':'tournamentslobby',
+			'action':'firstinfo',
+			'userid':localStorage.getItem('playerid'),
+			'sessionId':localStorage.getItem('session_id')
+			}));	
+}
+
+function creategame() {
+			ws.send(JSON.stringify({
+			'connectionId':connectionId,
+			'type':'tournamentslobby',
+			'action':'creategame',
+			'time':document.getElementById("tempo").value
+			}));
+}
+
+function newgame(obj) {
+	var gamesid = document.getElementById('games');
+	
+	var newGame = document.createElement('div');
+				newGame.style = "padding:5px;width:95%;position:relative";
+				newGame.setAttribute("class", "gamerow");
+				
+				innerGame1 = document.createElement('div');
+				innerGame1.style="width:33%;display:inline-block;position:relative";
+				innerGame1.innerHTML = obj['time'];
+
+				innerGame2 = document.createElement('div');
+				innerGame2.style="width:33%;display:inline-block;position:relative";
+				innerGame2.innerHTML = "Otwarty";
+				
+				innerGame3 = document.createElement('div');
+				innerGame3.style="width:33%;display:inline-block;position:relative";
+				innerGame3.innerHTML = "<button onclick=\"location.href='../gra/index.html?id="+obj['gameid']+"';\">Otwórz</button>";			
+			
+				newGame.appendChild(innerGame1);
+				newGame.appendChild(innerGame2);
+				newGame.appendChild(innerGame3);
+				
+				gamesid.appendChild(newGame);
+				
+				gamesid.scrollTop = gamesid.scrollHeight;
+}
+
+function firstinfo(obj) {
+
+			
+			var divId = document.getElementById('tournaments');
+			
+			if(obj['result'] == 'false') {
+				var newTour = document.createElement('div');
+				newTour.style = "padding:5px;width:100%;position:relative";
+				newTour.setAttribute("class", "gamerow");
+				newTour.innerHTML = 'Brak turniejów';
+				divid.appendChild(newTour);
+				return;
+			}
+			
+			
+			for (var key in obj.tournaments)
+			{
+			var tour = obj.tournaments[key];
+				var newTour = document.createElement('div');
+				newTour.style = "padding:5px;width:95%;position:relative";
+				newTour.setAttribute("class", "tourrow");
+				
+				for(cell in tour) {
+					innerTour = document.createElement('div');
+					innerTour.style="width:10%;display:inline-block;position:relative;;border-color:#fff";
+					
+					if(cell == 'registered') {
+						if(tour[cell] == 'true')
+						{
+							innerTour.innerHTML = '<button>Wyrejestruj</button>';
+						}
+						else
+						{
+							innerTour.innerHTML = '<button>Zarejestruj</button>';
+						}
+					}
+					else
+					{	
+						innerTour.innerHTML = tour[cell];
+					}
+					
+					newTour.appendChild(innerTour);
+				}	
+				
+			divId.appendChild(newTour);
+				
+			divId.scrollTop = divId.scrollHeight;
+			
+			}
+			
+}
+
+</script>
+	
+</body>
+</html>

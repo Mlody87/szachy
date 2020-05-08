@@ -1,0 +1,44 @@
+<a href="rejestracja/index.html">Rejestracja</a> | <a href="logowanie/index.html">Logowanie</a>
+<script>
+
+if(localStorage.getItem('connectionId'))
+{
+	var connectionId = localStorage.getItem('connectionId');
+}
+else
+{
+	var connectionId=0;
+}
+
+
+function sendPong()
+{
+	ws.send(JSON.stringify({
+			'connectionId':connectionId,
+			'type':'pong',
+			}));			
+}
+
+
+var adr = "ws://127.0.0.1:8888/connection/"+connectionId;
+
+		var ws = new WebSocket(adr);
+		
+		ws.onmessage = function (event) {
+			var obj = JSON.parse(event.data);
+			console.log(obj)
+
+
+			if("type" in obj) {
+				
+				if(obj["type"] == "connected")
+				{
+					localStorage.setItem('connectionId', obj['connectionId']);
+				}
+				if(obj["type"] == "ping")
+				{
+					sendPong();
+				}
+			}
+		}
+</script>

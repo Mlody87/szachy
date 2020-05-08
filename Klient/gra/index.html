@@ -1,0 +1,812 @@
+<html>
+    <head>
+        <title>WebSocket demo</title>
+		<head>
+  <link rel="stylesheet" href="css/chessboard-1.0.0.min.css">
+<script src="js/jquery-3.4.1.min.js"></script>
+<script src="js/chessboard.js"></script>
+<script src="js/chessboardjs-themes.js"></script>
+<script src="js/chess.js"></script>
+<script src="../modules/clocks.js"></script>
+<script src="../modules/board.js"></script>
+<script src="../modules/history.js"></script>
+<script type="text/javascript" src="../js/connection_functions.js"></script>
+<script>
+	//GAME ID
+	const queryString = window.location.search;
+	const urlParams = new URLSearchParams(queryString);
+	const gameid = parseInt(urlParams.get('id'));
+	var clock = CLOCKS_MODULE;
+	var board = BOARD_MODULE;
+	var gameHistory = HISTORY_MODULE;
+	var vistime;
+	var notVisible = false;
+</script>
+<style>
+.center {
+  margin: 0;
+  position: absolute;
+  top: 40%;
+  text-align: center;
+  width:100%
+}
+
+.centerimg {
+display: inline-block;
+max-width:60px;
+max-height:60px;
+width:auto;
+height:auto;
+margin:10px;
+}
+
+.clock {
+    color: #17D4FE;
+    font-size: 20px;
+    font-family: Orbitron;
+    letter-spacing: 3px;
+}
+
+.centerclock {
+    position: relative;
+    top: 45%;
+    -ms-transform: translateY(-45%);
+    transform: translateY(-45%);
+	margin:15px;
+}
+
+.gamehistorycell {
+padding:10px;
+width: 195px;
+height:15px;
+cursor: pointer;
+float:left;
+}
+
+.gamehistorycell:hover {
+background-color: #F4BC8D !important;
+}
+
+</style>
+</head>
+    <body>
+	
+	<div class="container">
+	
+	<div style="float:left; height:450px;display:block;">
+	
+		<div id="tmpdata"></div>
+
+
+				<div id="topdata">
+					<div class="clock" id="black"></div>
+					<button id="buttonblack" onclick="DolaczCzarne();">Dolacz czarne</button>
+				</div>	
+
+	<div id="boardcontainer" style="">
+		<div id="promotiontop" style="display:none;width:450px;height:450px;background: rgba(0,0,0,0.3);z-index:999;position:absolute;">
+		<div id="promopieces" class="center">
+		
+		</div>
+	</div>
+		<div id="myBoard" style="width: 450px;"></div>
+	</div>
+
+
+				<div id="bottomdata">
+					<div class="clock" id="white"></div>
+					<button id="buttonwhite" onclick="DolaczBiale();">Dolacz biale</button>
+				</div>	
+</div>
+
+	<div style="float:left;width:200px;height:500px;display:block;">
+		<div class="centerclock">
+			<button id="resign" onclick="resign();">Poddaj partie</button>
+			<button id="offerdraw" onclick="offerDraw();">Zaproponuj remis</button>
+			<div id="offerdrawmsg"></div>
+			<div id="offereddraw" style="display:none">
+				Zaproponowano remis. Przyjmujesz?<br>
+				<button id="acceptdraw" onclick="acceptDraw();">Przyjmij remis</button><br>
+				<button id="refusedraw" onclick="refuseDraw();">Odrzuć remis</button>
+			</div>
+		</div>
+		
+
+	</div>
+	
+	<!-- HISTORY -->
+	<div style="float:left;height:500px;display:block;">
+	
+		<div style="width:450px;height:450px;margin:10px;">
+			<div id="history" style="display:block;background-color:#eeeeee;width:450px;height:400px;overflow-y: scroll;vertical-align: top;">
+			</div>
+			<div style="display:block;text-align: center;">
+				<button style="position:relative;" onclick="gameHistory.previousMove();">Poprzedni</button><button onclick="gameHistory.fromStart();">Start</button><button onclick="gameHistory.live();">Live</button><button onclick="gameHistory.nextMove();">Następny</button>
+			</div>
+		</div>
+		
+	</div>
+	
+		<!-- CHAT -->
+	<div style="clear:both;"></div>
+	<div id="chatcontainer" style="width:500px;height:220px;display:block;margin-top:20px ">
+	<div id="chat" style="width:500px;height:200px;overflow-y: scroll;vertical-align: top;">
+	</div>
+	<div>
+		<input class="chatinput" type="text" onkeydown="chatinput(this)" style="width:500px"> 
+	</div>
+	
+	</div>
+	
+	
+	</div>
+	
+		
+		
+    <script>
+	
+	var running = false;
+	var resDiff = 0;
+	
+	clock.setWhiteCallback(refreshWhiteTime);
+	clock.setBlackCallback(refreshBlackTime);
+	
+	board.setBoardID('myBoard');
+	board.setSendMoveCallback(sendmove);
+	board.setPromoCallback(displaypromopieces);
+	board.createBoard();
+	
+	board.setHistory(gameHistory);
+	gameHistory.setHistoryID('history');
+	gameHistory.setBoardID('myBoard');
+	gameHistory.setVariableName('gameHistory');
+	gameHistory.setBoard(board);
+	
+	
+	establish_connection();
+	
+	window.onbeforeunload = removeWarcher;
+
+
+	function removeWarcher() {
+			ws.send(JSON.stringify({
+			'connectionId':connectionId,
+			'type':'game',
+			'action':'removewatcher',
+			'gameid':gameid.toString()
+			}));
+	}
+	
+	
+	
+	/* ##########################################################################*/
+	
+	var vis = (function(){
+	var stateKey, eventKey, keys = {
+		hidden: "visibilitychange",
+		webkitHidden: "webkitvisibilitychange",
+		mozHidden: "mozvisibilitychange",
+		msHidden: "msvisibilitychange"
+	};
+	for (stateKey in keys) {
+		if (stateKey in document) {
+			eventKey = keys[stateKey];
+			break;
+		}
+	}
+	return function(c) {
+		if (c) {
+			document.addEventListener(eventKey, c);
+			//document.addEventListener("blur", c);
+			//document.addEventListener("focus", c);
+		}
+		return !document[stateKey];
+	}
+})();
+
+vis(function(){
+	if(!vis())
+	{
+		console.log('NIE WIDOCZNE');
+		notVisible = true;
+		var d = new Date();
+		vistime = d.getTime();
+	
+		clock.stopWhiteTimer();
+		clock.stopBlackTimer();
+	}
+
+	if(vis())
+	{
+		console.log('WIDOCZNE');
+		notVisible = false;
+		var d = new Date();
+		var now = d.getTime() - vistime;
+		var now = now / 1000;
+		console.log("Roznica: "+now);
+		// PRZY RYCHU TRZEBA SPRAWDZICZ CZY ZMINIMALIZOWANY, JAK TAK TO TYLKO USTAWIAMY STAMPA
+		var who = board.getMoveColor();
+		
+		// ZROBIC Z TEGO OSOBNY MODUL Z WYWOLANIEM DO CALLBAC FUNCKJI KIEDY WIDOCZNIE I NIEWIDOCZNE
+		
+		if(who == 'white')
+		{
+			var t = parseFloat(clock.getWhiteTime());
+			var wt = t - now;
+			clock.setWhiteTime(wt);
+			clock.startWhiteTimer();
+		}
+		else
+		{
+			var t = parseFloat(clock.getBlackTime());
+			var wt = t - now;
+			clock.setBlackTime(wt);	
+			clock.startBlackTimer();
+		}
+		
+		board.reload();
+		
+	}
+});
+	
+	
+	/* ############################################################################ */
+	
+	
+
+
+	function chatinput(ele) {
+	
+		if(event.key === 'Enter') {
+		
+			ws.send(JSON.stringify({
+			'connectionId':connectionId,
+			'type':'game',
+			'action':'chat',
+			'gameid':gameid.toString(),
+			'nick':localStorage.getItem('login'),
+			'text':ele.value
+			}));
+			
+		ele.value = '';
+		}
+		
+	}
+
+	function refreshWhiteTime(t) {
+		document.getElementById("white").innerHTML = clock.getWhiteTime();
+	}
+	
+	function refreshBlackTime(t) {
+		document.getElementById("black").innerHTML = clock.getBlackTime();
+	}
+	
+	
+		function ChangeOrientation() {
+			
+			var everyChild = document.querySelectorAll("#topdata > *");
+			for (var i = 0; i<everyChild.length; i++) {
+			document.getElementById("tmpdata").append(everyChild[i]);
+			
+			}
+			
+			var everyChild = document.querySelectorAll("#bottomdata > *");
+			for (var i = 0; i<everyChild.length; i++) {
+			document.getElementById("topdata").append(everyChild[i]);
+			
+			}
+			
+			var everyChild = document.querySelectorAll("#tmpdata > *");
+			for (var i = 0; i<everyChild.length; i++) {
+			document.getElementById("bottomdata").append(everyChild[i]);
+			
+			}
+		
+		}
+		
+		function offerDraw() {
+			ws.send(JSON.stringify({
+			'connectionId':connectionId,
+			'type':'game',
+			'action':'offerdraw',
+			'gameid':gameid.toString(),
+			'color': board.getMyColor(),
+			'playerid':localStorage.getItem('playerid'),
+			'sessionId':localStorage.getItem('session_id') 
+			}));		
+			
+			document.getElementById("offerdraw").disabled=true;
+		}
+		
+		function resign() {
+			ws.send(JSON.stringify({
+			'connectionId':connectionId,
+			'type':'game',
+			'action':'resign',
+			'gameid':gameid.toString(),
+			'color':board.getMyColor(),
+			'playerid':localStorage.getItem('playerid'),
+			'sessionId':localStorage.getItem('session_id') 
+			}));		
+
+		}
+		
+		function acceptDraw() {
+			ws.send(JSON.stringify({
+			'connectionId':connectionId,
+			'type':'game',
+			'action':'acceptDraw',
+			'gameid':gameid.toString(),
+			'color':board.getMyColor(),
+			'playerid':localStorage.getItem('playerid'),
+			'sessionId':localStorage.getItem('session_id') 
+			}));		
+			
+			document.getElementById("offerdraw").disabled=true;
+			document.getElementById("offereddraw").style.display="none";
+		}
+		
+		function refuseDraw() {
+			ws.send(JSON.stringify({
+			'connectionId':connectionId,
+			'type':'game',
+			'action':'refuseDraw',
+			'gameid':gameid.toString(),
+			'color':board.getMyColor(),
+			'playerid':localStorage.getItem('playerid'),
+			'sessionId':localStorage.getItem('session_id') 
+			}));		
+			
+			document.getElementById("offerdraw").disabled=false;
+			document.getElementById("offereddraw").style.display="none";
+		}
+		
+		function refusedDraw(obj) {
+	
+			document.getElementById("offerdrawmsg").innerHTML = "Przeciwnik odrzucił remis";
+			document.getElementById("offerdraw").disabled=false;
+			document.getElementById("offereddraw").style.display="none";
+		}
+		
+		function accepteddraw(obj) {
+				clock.stopWhiteTimer();
+				clock.stopBlackTimer();
+				board.draggable(false);
+				console.log("game over");
+				console.log(obj['result']);
+		}
+		
+		function resigned(obj) {
+				clock.stopWhiteTimer();
+				clock.stopBlackTimer();
+				board.draggable(false);
+				console.log("game over");
+				console.log(obj['result']);
+		}
+		
+		
+	
+		function DolaczBiale() {
+			ws.send(JSON.stringify({
+			'connectionId':connectionId,
+			'type':'game',
+			'action':'registration',
+			'gameid':gameid.toString(),
+			'color':'white',
+			'playerid':localStorage.getItem('playerid'),
+			'sessionId':localStorage.getItem('session_id')
+			}));
+			
+			document.getElementById("buttonwhite").disabled=true;
+		}
+			
+		function DolaczCzarne() {
+			ws.send(JSON.stringify({
+			'connectionId':connectionId,
+			'type':'game',
+			'action':'registration',
+			'gameid':gameid.toString(),
+			'color':'black',
+			'playerid':localStorage.getItem('playerid'),
+			'sessionId':localStorage.getItem('session_id')
+			}));
+			
+			document.getElementById("buttonblack").disabled=true;
+		}	
+	
+
+	
+function getTime() {
+
+xmlhttp=new XMLHttpRequest();
+xmlhttp.open("GET", "http://szachy.io/gettime/", false);
+xmlhttp.send();
+var data = JSON.parse(xmlhttp.responseText);
+return data.time;
+}
+
+	
+		function afterConnected(obj) {
+
+			
+			if(!localStorage.getItem('session_id'))
+			{
+				document.getElementById("buttonblack").style.display='none';
+				document.getElementById("buttonwhite").style.display='none';
+			}
+			
+			
+				ws.send(JSON.stringify({
+					'connectionId':connectionId,
+					'type':'game',
+					'action':'givefirstgameinfo',
+					'gameid':gameid.toString(),
+					'playerid': localStorage.getItem('playerid'),
+					'sessionId': localStorage.getItem('session_id')
+					}));
+			
+		}
+		
+		
+		function chat(obj) {
+			
+			var chatid = document.getElementById('chat');
+	
+			var newText = document.createElement('div');
+			newText.style="padding:5px;width:90%";
+
+			newText.innerHTML = "<strong>"+obj['nick']+"</strong>: "+obj['text'];
+	
+			chatid.appendChild(newText);
+			chatid.scrollTop = chatid.scrollHeight;
+		
+		}
+		
+		function gamefirstinfo(obj) {
+				if(obj["black"]=='true') { 
+					document.getElementById("black").innerHTML = obj["timeblack"];
+					clock.setBlackTime(obj["timeblack"]);
+					document.getElementById("buttonblack").disabled=true;
+				}				
+				if(obj["white"]=="true") { 
+					document.getElementById("white").innerHTML = obj["timewhite"];
+					clock.setWhiteTime(obj["timewhite"]);
+					document.getElementById("buttonwhite").disabled=true;
+				}
+				
+				
+				board.setFenPossition(obj['fenposition']);
+				
+				if('mycolor' in obj)
+					{
+						board.setMyColor(obj['mycolor']);
+						
+						if(board.getMyColor() == 'black')
+						{
+							board.changeOrientation();
+							ChangeOrientation();
+						}
+						
+					}
+				
+				
+				
+				if(obj['running']=='true') {
+				
+					board.setMoveColor(obj['whomoving']);
+					
+					if(board.getMoveColor()=='white'){
+						clock.startWhiteTimer();
+						console.log("startuje biale")
+					}
+					else
+					{
+						clock.startBlackTimer();
+						console.log("startuje czarne");
+					}
+					
+					if(board.getMoveColor()==board.getMyColor()) { board.draggable(true);	}
+					
+				}
+			
+				
+			if(!localStorage.getItem('session_id'))
+			{
+				document.getElementById("buttonblack").style.display='none';
+				document.getElementById("buttonwhite").style.display='none';
+			}
+			
+			gameHistory.loadHistory(obj);
+			
+		}
+		
+		function registration(obj) {
+			
+				if(obj['sessionId']==localStorage.getItem('session_id')) {
+				board.setMyColor(obj['color']);
+				document.getElementById("buttonwhite").disabled=true;
+				document.getElementById("buttonblack").disabled=true;
+				
+				if(board.getMyColor()=='black') { 
+					board.changeOrientation('black'); 
+					ChangeOrientation();
+				}				
+				}
+			
+				if(obj["color"]=='black') { 
+					document.getElementById("black").innerHTML = obj["time"];
+					clock.setBlackTime(obj["time"]);
+					document.getElementById("buttonblack").disabled=true;
+				}				
+				if(obj["color"]=="white") { 
+					document.getElementById("white").innerHTML = obj["time"];
+					clock.setWhiteTime(obj["time"]);
+					document.getElementById("buttonwhite").disabled=true;
+				}
+
+						
+		}
+		
+		function offereddraw(obj) {
+			document.getElementById("offerdraw").disabled=true;
+			document.getElementById("offereddraw").style.display="block";
+		}
+		
+		
+		function EndOfTimeWhite() {
+			clock.stopWhiteTimer();
+			clock.stopBlackTimer();
+			document.getElementById("white").innerHTML = '0.0';
+		}
+
+		function EndOfTimeBlack() {
+			clock.stopWhiteTimer();
+			clock.stopBlackTimer();
+			document.getElementById("black").innerHTML = '0.0';
+		}
+		
+		
+		function endoftime(obj) {
+		board.draggable(false);
+		
+		if(obj['color']=='white')
+		{
+			EndOfTimeWhite();
+		}	
+		else
+		{
+			EndOfTimeBlack();
+		}
+		
+		}
+		
+		function sendmove(source, target, piece, promotion) {
+		
+			var obj = new Object();
+			obj.connectionId = connectionId,
+			obj.type = 'game',
+			obj.action = "move";
+			obj.gameid = gameid.toString();
+			obj.color  = board.getMyColor();
+   
+			if (obj.color=="white") { obj.time = clock.getWhiteTime(); }
+			if (obj.color=="black") { obj.time = clock.getBlackTime(); }
+   
+			obj.from=source;
+			obj.to=target;
+			obj.piece=piece;
+			obj.promotion=promotion;
+			obj.sessionId = localStorage.getItem('session_id'); 
+   
+			obj = addDiffInfo(obj);
+
+			var jsonString= JSON.stringify(obj);
+
+			ws.send(jsonString);
+		}
+		
+		function startthegame(obj)
+		{
+			running = true;
+			board.setMoveColor("white");
+			if(board.getMoveColor()==board.getMyColor()) { board.draggable(true);	}
+			
+			clock.setWhiteCallback(refreshWhiteTime);
+			clock.setBlackCallback(refreshBlackTime);
+			
+			clock.startWhiteTimer();
+		}
+		
+		function move(obj) {
+			
+			board.doMove(obj['from'], obj['to'], obj['promotion']);
+			
+			
+			
+			if(board.getMyColor()==obj["color"]) {
+				board.draggable(false);
+							
+			}else {
+				board.draggable(true);
+			}
+					
+			
+			
+			if(obj["color"]=="white")
+			{
+				clock.stopWhiteTimer();
+				
+				//DUPA DEBUG
+				//	console.log('czas klienta: ' + clock.getWhiteTime());
+				//	console.log('czas serwera: ' + obj["time"]);
+				
+				//KONIEC DUPA DEBUG
+			
+							
+				
+				clock.setWhiteTime(obj["time"]);
+				document.getElementById("white").innerHTML = obj["time"];
+				
+				if(notVisible)
+				{
+					var d = new Date();
+					vistime = d.getTime();
+				}
+				else
+				{
+					clock.startBlackTimer();
+				}
+				
+				//console.log("test :" + clock.getWhiteTime());
+			}
+			else
+			{
+			
+				clock.stopBlackTimer();
+				
+								//DUPA DEBUG
+					//console.log('czas klienta: ' + clock.getBlackTime());
+					//console.log('czas serwera: ' + obj["time"]);
+				
+				//KONIEC DUPA DEBUG
+				
+				clock.setBlackTime(obj["time"]);
+				document.getElementById("black").innerHTML = obj["time"];	
+
+				if(notVisible)
+				{
+					var d = new Date();
+					vistime = d.getTime();
+				}
+				else
+				{
+					clock.startWhiteTimer();
+				}
+				
+				//console.log("test :" + clock.getBlackTime());
+				
+			}
+			
+			
+			if (obj['gameover']=='true')
+			{
+				clock.stopWhiteTimer();
+				clock.stopBlackTimer();
+				board.draggable(false);
+				console.log("game over");
+				console.log(obj['result']);
+			}
+			
+			
+		}
+		
+		function calcResDiff(serverStamp)
+		{
+				var now = getTime();
+				
+				resDiff = now - serverStamp;
+				
+		
+		}
+		
+		function addDiffInfo(obj)
+		{
+				var now = getTime();
+				
+				obj.clientstamp = now;
+				obj.resDiff = resDiff;
+				
+				return obj;
+		
+		}
+		
+			function displaypromopieces(color)
+			{
+				var promopieces = ['n', 'b', 'r', 'q'];
+				var promocolor = color.charAt(0);  
+				var i;
+
+				document.getElementById('promopieces').innerHTML='';
+				for (i=0; i<4; i++) {
+				var str;
+				str = "<div class=\"centerimg\"><img src=\"img/chesspieces/wikipedia/";
+				str += promocolor;
+				str += promopieces[i].toUpperCase();
+				str += ".png\" onclick=\"board.setPromote('";
+				str += promopieces[i];
+				str += "');\"></div>";
+				console.log(str);
+				document.getElementById('promopieces').innerHTML += str;
+				}
+			}
+	
+
+		
+		ws.onmessage = function (event) {
+			var obj = JSON.parse(event.data);
+			
+			console.log(obj);
+
+			if("type" in obj) {
+			
+				if(obj["type"] == "connected")
+				{
+					connected(obj['connectionId']);
+					afterConnected(obj);
+				}
+				if(obj["type"] == "ping")
+				{
+					sendPong();
+				}
+				
+				if(obj['type']== 'game' && obj["action"] == "gamefirstinfo")
+				{
+					gamefirstinfo(obj);
+				}
+				if(obj['type']== 'game' && obj["action"] == "registration")
+				{
+					registration(obj);
+				}
+				if(obj['type']== 'game' && obj["action"] == "startthegame")
+				{
+					calcResDiff(obj['serverstamp']);
+					startthegame(obj);
+				}
+				if(obj['type']== 'game' && obj["action"] == "move")
+				{
+					calcResDiff(obj['serverstamp']);
+					move(obj);
+				}
+				if(obj['type']== 'game' && obj["action"] == "endoftime")
+				{
+					endoftime(obj);
+				}
+				if(obj['type']== 'game' && obj["action"] == "offereddraw")
+				{
+					offereddraw(obj);
+				}
+				if(obj['type']== 'game' && obj["action"] == "refuseddraw")
+				{
+					refusedDraw(obj);
+				}
+				if(obj['type']== 'game' && obj["action"] == "accepteddraw")
+				{
+					accepteddraw(obj);
+				}
+				if(obj['type']== 'game' && obj["action"] == "resign")
+				{
+					resigned(obj);
+				}
+				if(obj['type']== 'game' && obj["action"] == "chat")
+				{
+					chat(obj);
+				}
+					
+			}
+		}
+		
+	</script>
+
+	
+	</body>
+	</html>

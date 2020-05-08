@@ -1,0 +1,172 @@
+<html>
+<head>
+<script type="text/javascript" src="../js/connection_functions.js"></script>
+</head>
+<body>
+
+<style>
+.gamerow:hover {
+	background-color: #F4BC8D !important;
+}
+</style>
+
+<div style="width:500px;height:400px;display:block">
+	<div style="width:500px;position:relative">
+		<div style="width:32%;display:inline-block">Dystans</div>
+		<div style="width:32%;display:inline-block">Status</div>
+		<div style="width:32%;display:inline-block">Otwórz</div>
+	</div>
+	<div id="games" style="width:500px;height:400px;overflow-y: scroll;vertical-align: top;">
+	
+	</div>
+
+</div>
+
+<div style="clear:both"></div>
+
+<div style="display:block">
+Utwórz nową grę:
+<div style="display:inline-block"><input id="tempo"></div>
+<div style="display:inline-block"><button onclick="creategame();">Dodaj</button></div>
+
+</div>
+
+
+
+
+
+<script>
+
+		establish_connection();
+		
+		ws.onmessage = function (event) {
+			var obj = JSON.parse(event.data);
+			
+			console.log(obj)
+			
+			if(obj["type"] == "connected")
+			{
+				connected(obj['connectionId']);
+				givefirstinfo();
+			}
+			if(obj["type"] == "ping")
+			{
+				sendPong();
+			}
+			
+			if(obj['type'] == 'notification')
+			{
+				if(obj['action']=='gamestart') {
+					id = obj['value']
+					url = "../gra/index.html?id="+id;
+					window.location.href = url;
+				}
+			}
+			
+			if(obj['type']=='gameslobby' && obj['action']=='firstinfo')
+			{
+				firstinfo(obj);
+			}
+			 
+			if(obj['type']=='gameslobby' && obj['action']=='newgame')
+			{
+				newgame(obj);
+			}
+
+		}
+		
+		window.onbeforeunload = removeWarcher;
+
+
+function removeWarcher() {
+			ws.send(JSON.stringify({
+			'connectionId':connectionId,
+			'type':'gameslobby',
+			'action':'removewatcher'
+			}));
+}
+
+function givefirstinfo() {
+			ws.send(JSON.stringify({
+			'connectionId':connectionId,
+			'type':'gameslobby',
+			'action':'firstinfo'
+			}));	
+}
+
+function creategame() {
+			ws.send(JSON.stringify({
+			'connectionId':connectionId,
+			'type':'gameslobby',
+			'action':'creategame',
+			'time':document.getElementById("tempo").value
+			}));
+}
+
+function newgame(obj) {
+	var gamesid = document.getElementById('games');
+	
+	var newGame = document.createElement('div');
+				newGame.style = "padding:5px;width:95%;position:relative";
+				newGame.setAttribute("class", "gamerow");
+				
+				innerGame1 = document.createElement('div');
+				innerGame1.style="width:33%;display:inline-block;position:relative";
+				innerGame1.innerHTML = obj['time'];
+
+				innerGame2 = document.createElement('div');
+				innerGame2.style="width:33%;display:inline-block;position:relative";
+				innerGame2.innerHTML = "Otwarty";
+				
+				innerGame3 = document.createElement('div');
+				innerGame3.style="width:33%;display:inline-block;position:relative";
+				innerGame3.innerHTML = "<button onclick=\"location.href='../gra/index.html?id="+obj['gameid']+"';\">Otwórz</button>";			
+			
+				newGame.appendChild(innerGame1);
+				newGame.appendChild(innerGame2);
+				newGame.appendChild(innerGame3);
+				
+				gamesid.appendChild(newGame);
+				
+				gamesid.scrollTop = gamesid.scrollHeight;
+}
+
+function firstinfo(obj) {
+			var gamesid = document.getElementById('games');
+			
+			
+			for (var key in obj.games)
+			{
+			var game = obj.games[key];
+				var newGame = document.createElement('div');
+				newGame.style = "padding:5px;width:95%;position:relative";
+				newGame.setAttribute("class", "gamerow");
+				
+				innerGame1 = document.createElement('div');
+				innerGame1.style="width:33%;display:inline-block;position:relative";
+				innerGame1.innerHTML = game.time;
+
+				innerGame2 = document.createElement('div');
+				innerGame2.style="width:33%;display:inline-block;position:relative";
+				innerGame2.innerHTML = "Otwarty";
+				
+				innerGame3 = document.createElement('div');
+				innerGame3.style="width:33%;display:inline-block;position:relative";
+				innerGame3.innerHTML = "<button onclick=\"location.href='../gra/index.html?id="+game.id+"';\">Otwórz</button>";			
+			
+				newGame.appendChild(innerGame1);
+				newGame.appendChild(innerGame2);
+				newGame.appendChild(innerGame3);
+				
+				gamesid.appendChild(newGame);
+				
+				gamesid.scrollTop = gamesid.scrollHeight;
+			
+			}
+			
+}
+
+</script>
+	
+</body>
+</html>
