@@ -14,6 +14,13 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="ADD_SUFFIX_TO_CHERRY_PICKS_OF_PUBLISHED_COMMITS" value="false" />
+    <option name="PREVIEW_PUSH_ON_COMMIT_AND_PUSH" value="false" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+    <option name="WARN_ABOUT_CRLF" value="false" />
+    <option name="WARN_ABOUT_DETACHED_HEAD" value="false" />
+  </component>
   <component name="ProjectId" id="1b8mCbKjWr23rPjRKnS6fFrLa8J" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
@@ -23,8 +30,8 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../Testy/testy.py" />
-    <property name="settings.editor.selected.configurable" value="Errors" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="settings.github" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -117,30 +124,34 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
+    <state x="552" y="181" key="#Notifications" timestamp="1588956432510">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="552" y="181" key="#Notifications/0.0.1920.1040@0.0.1920.1040" timestamp="1588956432510" />
     <state x="740" y="278" key="FileChooserDialogImpl" timestamp="1588871755827">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="740" y="278" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1588871755827" />
-    <state width="1899" height="280" key="GridCell.Tab.0.bottom" timestamp="1588951240919">
+    <state width="1899" height="280" key="GridCell.Tab.0.bottom" timestamp="1588958664972">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="280" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1588951240919" />
-    <state width="1899" height="280" key="GridCell.Tab.0.center" timestamp="1588951240919">
+    <state width="1899" height="280" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1588958664972" />
+    <state width="1899" height="280" key="GridCell.Tab.0.center" timestamp="1588958664972">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="280" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1588951240919" />
-    <state width="1899" height="280" key="GridCell.Tab.0.left" timestamp="1588951240919">
+    <state width="1899" height="280" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1588958664972" />
+    <state width="1899" height="280" key="GridCell.Tab.0.left" timestamp="1588958664972">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="280" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1588951240919" />
-    <state width="1899" height="280" key="GridCell.Tab.0.right" timestamp="1588951240919">
+    <state width="1899" height="280" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1588958664972" />
+    <state width="1899" height="280" key="GridCell.Tab.0.right" timestamp="1588958664972">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="280" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1588951240919" />
-    <state x="463" y="165" key="SettingsEditor" timestamp="1588257461153">
+    <state width="1899" height="280" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1588958664972" />
+    <state x="463" y="165" key="SettingsEditor" timestamp="1588957425206">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="463" y="165" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1588257461153" />
+    <state x="463" y="165" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1588957425206" />
     <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1588876659841">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
