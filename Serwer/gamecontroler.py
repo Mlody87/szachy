@@ -9,6 +9,7 @@ import chess
 import requests
 import ast
 import conf
+import mysql.connector as mariadb
 
 
 
@@ -55,6 +56,14 @@ class GameControler(threading.Thread):
         self.gametime = GameTime
         self.whitetime = timers.SecondCounter(self.whitetime, callback=self.endoftime)
         self.blacktime = timers.SecondCounter(self.blacktime, callback=self.endoftime)
+
+    def dbSetResult(self, result):
+        dbconn = mariadb.connect(user=conf.dbconf['user'], password=conf.dbconf['password'], database=conf.dbconf['db'])
+        cursor = dbconn.cursor(dictionary=True, buffered=True)
+        hist = json_data = json.dumps(self.history)
+        cursor.execute("UPDATE games SET status = %s, result = %s, history = %s WHERE id = %s", (self.status, result, hist, self.id))
+        dbconn.commit()
+        dbconn.close()
 
     def msg(self, msg):
         self.q.put(msg)
@@ -223,6 +232,8 @@ class GameControler(threading.Thread):
         json_data = json.dumps(gameinfo)
         self._loop.run_until_complete(self.sendmsg(json_data))
 
+        self.dbSetResult(gameinfo['result'])
+
 
     def acceptDraw(self, message):
         msg = message
@@ -261,6 +272,8 @@ class GameControler(threading.Thread):
 
         json_data = json.dumps(gameinfo)
         self._loop.run_until_complete(self.sendmsg(json_data))
+
+        self.dbSetResult(gameinfo['result'])
 
     def refuseDraw(self, message):
         msg = message
@@ -389,8 +402,10 @@ class GameControler(threading.Thread):
 
         if(float(self.whitetime.peek())<=0):
             gameinfo['color'] = 'white'
+            result = "0-1"
         else:
             gameinfo['color'] = 'black'
+            result = "1-0"
 
         if(self.whitedata['connectionId'] in conf.users):
             conf.users[self.whitedata['connectionId']].userInfo['running'] = 'false'
@@ -399,11 +414,19 @@ class GameControler(threading.Thread):
             conf.users[self.blackdata['connectionId']].userInfo['running'] = 'false'
             conf.users[self.blackdata['connectionId']].userInfo['runningGameId'] = ''
 
+        self.dbSetResult(result)
+
         json_data = json.dumps(gameinfo)
         self._loop.run_until_complete(self.sendmsg(json_data))
 
     def startgame(self):
         self.status = 'running'
+
+        dbconn = mariadb.connect(user=conf.dbconf['user'], password=conf.dbconf['password'], database=conf.dbconf['db'])
+        cursor = dbconn.cursor(dictionary=True, buffered=True)
+        cursor.execute("UPDATE games SET status = %s WHERE id = %s", (self.status, self.id))
+        dbconn.commit()
+        dbconn.close()
 
         #if(self.whitedata['playerid'] in usersInfo):
         #    usersInfo[self.whitedata['playerid']]['running'] = 'true'
@@ -489,6 +512,8 @@ class GameControler(threading.Thread):
 
             conf.users[self.blackdata['connectionId']].userInfo['running'] = 'false'
             conf.users[self.blackdata['connectionId']].userInfo['runningGameId'] = ''
+
+            self.dbSetResult(msg['result'])
 
         else:
             msg['gameover'] = 'false'
