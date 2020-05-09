@@ -15,7 +15,7 @@ from tournamentControler import tournamentControler
 
 def MainServer():
 
-    time.sleep(35)
+    time.sleep(5)
     turniej = tournamentControler(1)
     turniej.start()
     #while True:

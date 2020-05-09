@@ -4,7 +4,6 @@ import threading
 import time
 import mysql.connector as mariadb
 from gamecontroler import GameControler
-from conf import games
 import conf
 from swissdutch.dutch import DutchPairingEngine
 from swissdutch.constants import FideTitle, Colour, FloatStatus
@@ -21,6 +20,7 @@ class tournamentControler(threading.Thread):
         self.input_players = list()
         self.players = {}
         self.rounds = {}
+        self.gamesId = set()
 
         self.engine = DutchPairingEngine()
 
@@ -200,7 +200,7 @@ class tournamentControler(threading.Thread):
         print("Generuje pary")
         pairs = self.getPairs(round)
         print(pairs)
-        gamesId = set()
+        self.gamesId = set()
         roundInfo = {}
 
         dbconn = mariadb.connect(user=conf.dbconf['user'], password=conf.dbconf['password'], database=conf.dbconf['db'])
@@ -217,16 +217,16 @@ class tournamentControler(threading.Thread):
             dbconn.commit()
 
             gameid = cursor.lastrowid
-            gamesId.add(gameid)
+            self.gamesId.add(gameid)
 
-            games[str(gameid)] = GameControler(gameid, self.tourInfo['time'])
+            conf.games[str(gameid)] = GameControler(gameid, self.tourInfo['time'])
 
             whiteconnection = self.getConnId(pair[0])
             blackconnection = self.getConnId(pair[1])
 
             print("Kreauje partie")
-            games[str(gameid)].addPlayers(pair[0], whiteconnection, pair[1], blackconnection)
-            games[str(gameid)].start()
+            conf.games[str(gameid)].addPlayers(pair[0], whiteconnection, pair[1], blackconnection)
+            conf.games[str(gameid)].start()
 
             pairInfo['whiteid'] = pair[0]
             pairInfo['blackid'] = pair[1]
@@ -270,7 +270,27 @@ class tournamentControler(threading.Thread):
         for i in round:
             if (round[i]['gameid'] in conf.games):
                 conf.games[round[i]['gameid']].startgame()
-                a = 1
+
+    def waitForGamesEnd(self):
+        tmpGames = self.gamesId
+        removeId = set()
+
+        while True:
+            removeId.clear()
+            print("Sprawdzam czy sie skonczyly")
+            for id in tmpGames:
+                if(str(id) in conf.games):
+                    print(id,": ",conf.games[str(id)].status)
+                    if(conf.games[str(id)].status == 'ended'):
+                        removeId.add(id)
+
+            for remove in removeId:
+                tmpGames.remove(remove)
+
+            if (len(tmpGames) == 0):
+                return False
+
+            time.sleep(5)
 
     def run(self):
 
@@ -309,11 +329,15 @@ class tournamentControler(threading.Thread):
         print("Startuje gry!")
         self.sendRoundStart()
 
+
+        time.sleep(8)
+        self.waitForGamesEnd()
+
+        print("Skonczyly sie!")
+
         #czekaj na zakonczenie
         #pobieraj wyniki
         #zapisz wyniki, zaktualizuj score graczy
         #odpal nastepna runde
         #posortuj wyniki i zapisz
         #wyslij wyniki turnieju
-
-        print("Wystartowaly")
