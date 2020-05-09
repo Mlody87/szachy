@@ -38,12 +38,12 @@ class GameControler(threading.Thread):
         self.whitedata = {
             'playerid': '',
             'connectionId': '',
-            #'sessionId': ''
+            'result': 0
         }
         self.blackdata = {
             'playerid': '',
             'connectionId': '',
-            #'sessionId': ''
+            'result': 0
         }
 
         self.whomoving = 'white'
@@ -216,8 +216,10 @@ class GameControler(threading.Thread):
 
         if(msg['color']=='white'):
             gameinfo['result'] = "0-1"
+            self.blackdata['result'] = 1
         else:
             gameinfo['result'] = "1-0"
+            self.whitedata['result'] = 1
 
         gameinfo['gameover'] = 'true'
 
@@ -260,6 +262,10 @@ class GameControler(threading.Thread):
 
         gameinfo['gameover'] = 'true'
         gameinfo['result'] = "1/2-1/2"
+
+        self.whitedata['result'] = 0.5
+        self.blackdata['result'] = 0.5
+
         self.status = 'ended'
 
         self.drawofer = False
@@ -403,9 +409,11 @@ class GameControler(threading.Thread):
         if(float(self.whitetime.peek())<=0):
             gameinfo['color'] = 'white'
             result = "0-1"
+            self.blackdata['result'] = 1
         else:
             gameinfo['color'] = 'black'
             result = "1-0"
+            self.whitedata['result'] = 1
 
         if(self.whitedata['connectionId'] in conf.users):
             conf.users[self.whitedata['connectionId']].userInfo['running'] = 'false'
@@ -506,6 +514,15 @@ class GameControler(threading.Thread):
             msg['gameover'] = 'true'
             msg['result'] = self.board.result(claim_draw=True)
             self.status = 'ended'
+
+            if(msg['result']=='1-0'):
+                self.whitedata['result'] = 1
+            if (msg['result'] == '0-1'):
+                self.blackdata['result'] = 1
+            if (msg['result'] == '1/2-1/2'):
+                self.whitedata['result'] = 0.5
+                self.blackdata['result'] = 0.5
+
 
             conf.users[self.whitedata['connectionId']].userInfo['running'] = 'false'
             conf.users[self.whitedata['connectionId']].userInfo['runningGameId'] = ''

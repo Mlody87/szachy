@@ -8,6 +8,7 @@ import conf
 from swissdutch.dutch import DutchPairingEngine
 from swissdutch.constants import FideTitle, Colour, FloatStatus
 from swissdutch.player import Player
+import copy
 
 
 class tournamentControler(threading.Thread):
@@ -272,7 +273,7 @@ class tournamentControler(threading.Thread):
                 conf.games[round[i]['gameid']].startgame()
 
     def waitForGamesEnd(self):
-        tmpGames = self.gamesId
+        tmpGames = copy.deepcopy(self.gamesId)
         removeId = set()
 
         while True:
@@ -291,6 +292,13 @@ class tournamentControler(threading.Thread):
                 return False
 
             time.sleep(5)
+
+    def updateScore(self):
+        for id in self.gamesId:
+            id = str(id)
+            if(id in conf.games):
+                self.players[int(conf.games[id].whitedata['playerid'])]['score'] += conf.games[id].whitedata['result']
+                self.players[int(conf.games[id].blackdata['playerid'])]['score'] += conf.games[id].blackdata['result']
 
     def run(self):
 
@@ -335,9 +343,9 @@ class tournamentControler(threading.Thread):
 
         print("Skonczyly sie!")
 
-        #czekaj na zakonczenie
-        #pobieraj wyniki
-        #zapisz wyniki, zaktualizuj score graczy
+        self.updateScore()
+
+
         #odpal nastepna runde
         #posortuj wyniki i zapisz
         #wyslij wyniki turnieju
