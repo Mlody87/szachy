@@ -13,6 +13,9 @@ import copy
 
 class tournamentControler(threading.Thread):
 
+    def getColor(self):
+        return Colour.white
+
     def __init__(self, id):
         threading.Thread.__init__(self)
         self.q = queue.Queue()
@@ -28,9 +31,7 @@ class tournamentControler(threading.Thread):
         self.create(self.id)
 
     def create(self, id):
-        print("Ustawiam info")
         self.setInfo(id)
-        print("Ustawiam graczy")
         self.setPlayers(id)
 
     def setInfo(self, id):
@@ -82,6 +83,7 @@ class tournamentControler(threading.Thread):
             for row in myresult:
                 usersId.append(row['playerid'])
 
+        print("Zarejestrowanych graczy: ",cursor.rowcount)
         dbconn.close()
 
         self.setPlayersInfo(usersId)
@@ -108,7 +110,7 @@ class tournamentControler(threading.Thread):
                 player['name'] = row['login']
                 player['rating'] = row['rank']
                 player['score'] = 0
-                # player['float_status'] = None
+                player['float_status'] = FloatStatus.none
                 player['opponents'] = ()
                 player['colour_hist'] = ()
 
@@ -129,11 +131,14 @@ class tournamentControler(threading.Thread):
                             rating=self.players[k]['rating'],
                             pairing_no=self.players[k]['pairing_no'],
                             score=self.players[k]['score'],
-                            float_status=FloatStatus.none,
+                            float_status=self.players[k]['float_status'],
                             opponents=self.players[k]['opponents'],
                             colour_hist=self.players[k]['colour_hist']
                             )
             self.input_players.append(player)
+
+        print("INPUT PLAYERS")
+        print(self.input_players)
 
     def getPlayerKey(self, pairing_no):
         # player key = player id
@@ -145,10 +150,10 @@ class tournamentControler(threading.Thread):
         for row in round:
             key = self.getPlayerKey(row.pairing_no)
 
-            self.players[key]['rating'] = row.rating
-            self.players[key]['score'] = row.score
             self.players[key]['opponents'] = row.opponents
             self.players[key]['colour_hist'] = row.colour_hist
+            self.players[key]['float_status'] = row.float_status
+            self.players[key]['score'] = row.score
 
     def notAdded(self, pair, pairs):
         change = (pair[1], pair[0])
@@ -162,14 +167,11 @@ class tournamentControler(threading.Thread):
 
         pairs = set()
         for row in round:
-            myId = self.getPlayerKey(row.pairing_no)
-            mycolor = row.colour_hist[-1].value
-            opponentId = self.getPlayerKey(row.opponents[-1])
 
-            if (opponentId == 0):
-                # pause, reward +1 point
-                self.players[myId]['score'] += 1
-            else:
+            if (row.opponents[-1] != 0):
+                myId = self.getPlayerKey(row.pairing_no)
+                mycolor = row.colour_hist[-1].value
+                opponentId = self.getPlayerKey(row.opponents[-1])
                 if (mycolor > 0):
                     pair = (myId, opponentId)
                 else:
@@ -198,7 +200,6 @@ class tournamentControler(threading.Thread):
         return id
 
     def createGames(self, round):
-        print("Generuje pary")
         pairs = self.getPairs(round)
         print(pairs)
         self.gamesId = set()
@@ -225,7 +226,7 @@ class tournamentControler(threading.Thread):
             whiteconnection = self.getConnId(pair[0])
             blackconnection = self.getConnId(pair[1])
 
-            print("Kreauje partie")
+
             conf.games[str(gameid)].addPlayers(pair[0], whiteconnection, pair[1], blackconnection)
             conf.games[str(gameid)].start()
 
@@ -246,7 +247,6 @@ class tournamentControler(threading.Thread):
             if (blackconnection in conf.users):
                 conf.users[blackconnection].addSendMsg(info)
 
-            print(info)
 
         dbconn.close()
         return roundInfo
@@ -278,10 +278,8 @@ class tournamentControler(threading.Thread):
 
         while True:
             removeId.clear()
-            print("Sprawdzam czy sie skonczyly")
             for id in tmpGames:
                 if(str(id) in conf.games):
-                    print(id,": ",conf.games[str(id)].status)
                     if(conf.games[str(id)].status == 'ended'):
                         removeId.add(id)
 
@@ -304,48 +302,48 @@ class tournamentControler(threading.Thread):
 
         # zmien status turnieju
 
-        print("Dodaje pairing no do graczy")
         self.assignPairingNo()
 
         self.tourInfo['round'] += 1
-        #for tests:
-        #self.tourInfo['rounds'] = 1
-        #i=1
 
-        #while self.tourInfo['round'] <= self.tourInfo['rounds']:
-        #while i <= self.tourInfo['rounds']:
-        #i = self.tourInfo['round']
-        print("Przygotowuje input graczy")
-        self.prepareInputPlayers()
-        print("Paruje")
-        round = self.engine.pair_round(self.tourInfo['round'], self.input_players)
-        print(round)
-        print("Aktualizuje dane graczy")
-        self.updatePlayers(round)
+        while self.tourInfo['round'] <= self.tourInfo['rounds']:
+            #if(self.tourInfo['round']==self.tourInfo['rounds']):
+             #   last = True
+            #else:
+             #   last = False
+
+            print("Rusza runda: ",self.tourInfo['round'])
+
+            self.prepareInputPlayers()
+            round = self.engine.pair_round(self.tourInfo['round'], self.input_players)
+            print(round)
+
+            self.updatePlayers(round)
 
             # zapisz do bazy
-        print("Tworze gry")
-        roundInfo = self.createGames(round)
-        self.rounds[self.tourInfo['round']] = roundInfo
 
-        time.sleep(5)
-        print("Wysylam info ze start za 10s")
-        self.sendPreparation()
+            roundInfo = self.createGames(round)
+            self.rounds[self.tourInfo['round']] = roundInfo
 
-        time.sleep(10)
+            time.sleep(5)
 
-        print("Startuje gry!")
-        self.sendRoundStart()
+            self.sendPreparation()
+
+            time.sleep(10)
 
 
-        time.sleep(8)
-        self.waitForGamesEnd()
-
-        print("Skonczyly sie!")
-
-        self.updateScore()
+            self.sendRoundStart()
 
 
-        #odpal nastepna runde
+            time.sleep(8)
+            self.waitForGamesEnd()
+
+            print("Skonczyly sie!")
+
+            self.updateScore()
+
+            self.tourInfo['round'] += 1
+
+
         #posortuj wyniki i zapisz
         #wyslij wyniki turnieju
