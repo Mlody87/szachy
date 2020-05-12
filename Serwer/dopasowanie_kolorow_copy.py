@@ -1,50 +1,3 @@
-import copy
-
-def canPlay(group, pn):
-    result = False
-    for x in group:
-        if ((pn not in x['opponents']) and (pn != x['pairing_no'])):
-            result = True
-    return result
-
-def findIndex(group, pn):
-    for index, item in enumerate(group):
-        if(item['pairing_no']==pn):
-            return index
-            break
-
-
-def dropPlayersWithoutOpponents(group, destGroup):
-    drop = list()
-    testWith = copy.deepcopy(group)
-
-    for index, item in enumerate(group):
-        if (not canPlay(testWith, item['pairing_no'])):
-            i = findIndex(testWith, item['pairing_no'])
-            print(testWith)
-            print(index)
-            testWith.remove(index)
-            drop.append(index)
-            destGroup.append(item)
-    for i in drop:
-        group.remove(i)
-
-
-group = (
-    {"pairing_no":1, "opponents":(2,)},
-    {"pairing_no":2, "opponents":(1,)}
-)
-
-destGroup = list()
-group = list(group)
-
-dropPlayersWithoutOpponents(group, destGroup)
-
-print(group)
-print(destGroup)
-
-
-'''
 import math
 import copy
 
@@ -281,4 +234,3 @@ pairGroup(0)
 #4. parujemy, jezeli nieparzysta, zrzucamy ostatniego, ktory w dol jezeli > polowa, w gore<polowa
 #5. jezeli ktos nie moze miec pary rzucamy  w dol jezeli > polowa, w gore<polowa
 
-'''
