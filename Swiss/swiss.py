@@ -36,9 +36,38 @@ class SwissEngine:
         if s2:
             s2[0].bye()
 
-        print(self._players)
+        #print(self._players)
         return self._players
 
+   #next rounds
+
+    def createGroups(self):
+        result = collections.defaultdict(list)
+        for p in self._players:
+            result[p.score].append(p)
+
+        groups = list(result.values())
+        groupsNo = len(groups)
+        center = math.ceil(groupsNo / 2) if not groupsNo % 2 else math.ceil((groupsNo / 2)) - 1
+
+        g1 = groups[:center]
+        g2 = groups[center:]
+        finalGroups = list()
+
+        while g1:
+            p1 = g1.pop(0)
+            finalGroups.append(p1)
+        while g2:
+            p2 = g2.pop()
+            finalGroups.append(p2)
+
+        return finalGroups
+
+    def _round(self):
+        self._players.sort(key=lambda Player: Player.score,
+                           reverse=True)
+
+        groups = self.createGroups()
 
 
-
+        #w forze bedziemy sprawdzac zawodnikow w kazdej grupie i przenosic

@@ -1,5 +1,6 @@
 from swiss import SwissEngine
 from player import Player
+import math
 
 class T:
     def __init__(self, name):
@@ -40,8 +41,31 @@ input_players = (
         Player(name='Qba',
                rating=2700),
         Player(name='Tester',
-               rating=2550)
+               rating=2550),
+Player(name='ktos',
+               rating=2650)
 )
 
 engine = SwissEngine(1, input_players)
 print(engine)
+
+##################################
+
+dane = {1,2}
+
+groups = list(dane)
+
+groupsNo = len(groups)
+center = math.ceil(groupsNo/2) if not groupsNo % 2 else math.ceil((groupsNo / 2))-1
+
+g1 = groups[:center]
+g2 = groups[center:]
+finalGroups = list()
+while g1:
+    p1 = g1.pop(0)
+    finalGroups.append(p1)
+while g2:
+    p2 = g2.pop()
+    finalGroups.append(p2)
+
+print(finalGroups)
