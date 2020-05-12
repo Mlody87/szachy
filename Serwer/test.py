@@ -1,11 +1,62 @@
-import math
+import copy
 
+def canPlay(group, pn):
+    result = False
+    for x in group:
+        if ((pn not in x['opponents']) and (pn != x['pairing_no'])):
+            result = True
+    return result
+
+def findIndex(group, pn):
+    for index, item in enumerate(group):
+        if(item['pairing_no']==pn):
+            return index
+            break
+
+
+def dropPlayersWithoutOpponents(group, destGroup):
+    drop = list()
+    testWith = copy.deepcopy(group)
+
+    for index, item in enumerate(group):
+        if (not canPlay(testWith, item['pairing_no'])):
+            i = findIndex(testWith, item['pairing_no'])
+            print(testWith)
+            print(index)
+            testWith.remove(index)
+            drop.append(index)
+            destGroup.append(item)
+    for i in drop:
+        group.remove(i)
+
+
+group = (
+    {"pairing_no":1, "opponents":(2,)},
+    {"pairing_no":2, "opponents":(1,)}
+)
+
+destGroup = list()
+group = list(group)
+
+dropPlayersWithoutOpponents(group, destGroup)
+
+print(group)
+print(destGroup)
+
+
+'''
+import math
+import copy
+
+#istnieje juz w swiss
 def isOdd(num):
     if (num % 2) == 0:
         return False
     else:
         return True
 
+
+#istnieje juz w swiss
 def getPlayerByPN(group, pn):
     for k in group:
         if(k['pairing_no'] == pn):
@@ -152,39 +203,58 @@ def pairGroup(no):
 
     pairs = set()
     for index, item in enumerate(tmpPairs):
-        print("Sprawdzam pare", item)
+        print("Sprawdzam pare:", item)
 
         op = getPlayerByPN(group, item[1])
 
         if(item[0] in op['opponents']):
-            print("Juz grali")
+            print("Grali już ze sobą")
+
+            found = False
+
+            for i in range (index+1, len(tmpPairs)-1):
+                newOp = getPlayerByPN(group, tmpPairs[i][1])
+
+                if(item[0] not in newOp['opponents']):
+                    print("Znaleziono przeciwnika. Zamieniamy")
+                    mypair = (item[0], tmpPairs[i][1])
+                    oppair = (tmpPairs[i][0], item[1])
+                    tmpPairs[index] = mypair
+                    tmpPairs[i] = oppair
+
+
+            #zamieniamy przeciwnikow
+            #jak nie ma zadnego to sprawdzamy czy koniecnznie musi miec ten kolor
+            #jak nie musi to zamieniamy kolor i lecimy od nowa
 
 
 
 
     print("----------")
     print("Ostateczne pary")
-    print(pairs)
+    print(tmpPairs)
 
 
 
 
 lista = [
-    [{'name': 'Carla', 'rating': 2600, 'pairing_no': 1, 'score': 1, 'color_hist': (-1,), 'opponents': (11,)},
-{'name': 'Giorgia', 'rating': 2555, 'pairing_no': 11, 'score': 1, 'color_hist': (1,1), 'opponents': (1,)},
-          {'name': 'Giorgia', 'rating': 2555, 'pairing_no': 2, 'score': 1, 'color_hist': (-1,), 'opponents': (4,)},
-{'name': 'Giorgia', 'rating': 2555, 'pairing_no': 20, 'score': 1, 'color_hist': (1,), 'opponents': (4,)},
-{'name': 'Giorgia', 'rating': 2555, 'pairing_no': 30, 'score': 1, 'color_hist': (0,), 'opponents': (4,)},
-{'name': 'Giorgia', 'rating': 2555, 'pairing_no': 31, 'score': 1, 'color_hist': (0,), 'opponents': (4,)},
-{'name': 'Giorgia', 'rating': 2555, 'pairing_no': 32, 'score': 1, 'color_hist': (0,), 'opponents': (4,)},
+    [
+     {'name': 'Giorgia', 'rating': 2555, 'pairing_no': 1, 'score': 1, 'color_hist': (-1,), 'opponents': (7,)},
+     {'name': 'Bruno', 'rating': 2500, 'pairing_no': 2, 'score': 1, 'color_hist': (1,), 'opponents': (8,)},
+     {'name': 'Alice', 'rating': 2400, 'pairing_no': 3, 'score': 1, 'color_hist': (-1,), 'opponents': (9,)},
+     {'name': 'Eloise', 'rating': 2350, 'pairing_no': 4, 'score': 1, 'color_hist': (1,), 'opponents': (10,)},
+     {'name': 'Qba', 'rating': 1800, 'pairing_no': 5, 'score': 1, 'color_hist': (0,), 'opponents': (0,)}
+    ],
 
-
-
-
-          {'name': 'Alice', 'rating': 2400, 'pairing_no': 4, 'score': 1, 'color_hist': (1, 0), 'opponents': (2, 0)}],
-
-         [{'name': 'Bruno', 'rating': 2500, 'pairing_no': 3, 'score': 0, 'color_hist': (-1,), 'opponents': (1,)}]
+    [
+    {'name': 'Carla', 'rating': 2600, 'pairing_no': 1, 'score': 0, 'color_hist': (1,), 'opponents': (6,)},
+        {'name': 'Pablo', 'rating': 2000, 'pairing_no': 6, 'score': 0, 'color_hist': (-1,), 'opponents': (1,)},
+        {'name': 'Blazej', 'rating': 1950, 'pairing_no': 7, 'score': 0, 'color_hist': (1,), 'opponents': (2,)},
+        {'name': 'Ktos', 'rating': 1900, 'pairing_no': 8, 'score': 0, 'color_hist': (-1,), 'opponents': (3,)},
+        {'name': 'Ziom', 'rating': 1855, 'pairing_no': 9, 'score': 0, 'color_hist': (1,), 'opponents': (4,)}]
 ]
+
+
 
 runda = 2
 
@@ -210,3 +280,5 @@ pairGroup(0)
 #3. jezeli liczba w grupie <2 zrzucamy wszystkich w dol jezeli > polowa, w gore<polowa OK
 #4. parujemy, jezeli nieparzysta, zrzucamy ostatniego, ktory w dol jezeli > polowa, w gore<polowa
 #5. jezeli ktos nie moze miec pary rzucamy  w dol jezeli > polowa, w gore<polowa
+
+'''
