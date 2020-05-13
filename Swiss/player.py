@@ -12,6 +12,11 @@ class Player:
             .format(self._name, self._rating, self._pairing_no,
                     self._score,  self._opponents, self._colour_hist))
 
+    def __str__(self) -> str:
+        return ('sn:{0}, r:{1}, pn:{2}, s:{3}, op:{4}, ch:{5}'
+            .format(self._name, self._rating, self._pairing_no,
+                    self._score,  self._opponents, self._colour_hist))
+
     def __hash__(self):
         return hash(repr(self))
 
@@ -60,6 +65,29 @@ class Player:
     def expected_colour(self):
         res = sum(self._colour_hist)
         return res
+
+    @property
+    def strong_of_preference(self):
+        sum = abs(sum(self._colour_hist))
+        return sum
+
+    @property
+    def expected_colour(self):
+        colours = list(self._colour_hist)
+        exp = colours[-1]
+        if exp > 0:
+            return -1
+        if exp<0 :
+            return 1
+        if exp==0:
+            return 0
+
+    def can_play(self, ops):
+        can = False
+        for op in ops:
+            if(self._pairing_no not in op.opponents):
+                can = True
+        return can
 
     def pair(self, opponent, mycolour):
         self._opponents += (opponent,)
