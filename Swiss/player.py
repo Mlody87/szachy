@@ -85,7 +85,7 @@ class Player:
     def can_play(self, ops):
         can = False
         for op in ops:
-            if(self._pairing_no not in op.opponents):
+            if(op.pairing_no not in self._opponents):
                 can = True
         return can
 
