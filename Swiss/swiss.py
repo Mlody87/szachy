@@ -11,9 +11,9 @@ class SwissEngine:
         self._byePlayer = None
         self._checkPlayersAgain = False
         self._groupsNo = None
-        self._g1 = list()
-        self._g2 = list()
-        self._g0 = list()
+        self._g1 = []
+        self._g2 = []
+        self._g0 = []
 
         if(self._round==1):
             self._firstRound()
@@ -67,7 +67,8 @@ class SwissEngine:
         top = True
         for i in range(0, (self._groupsNo)):
             if (len(groups) == 1):
-                self._g0.append(groups.pop(0))
+                p = groups.pop(0)
+                self._g0.append(p)
                 break
 
             if (top):
@@ -81,19 +82,6 @@ class SwissEngine:
                 top = True
 
 
-    def _floatDirection(self, i):
-        if i> self._center:
-            return -1
-        if i< self._center:
-            return 1
-        return 0
-
-    def _flipDir(self, dir):
-        if dir>0:
-            return -1
-        if dir<0:
-            return 1
-
     def _preparePlayers(self, dir, groupNo):
         center=False
         if(dir>0):
@@ -104,69 +92,108 @@ class SwissEngine:
             source = self._g0
             center=True
 
+        print("Numer grupy: ", groupNo)
+
         group = source[groupNo]
+        print("Grupa: ",group)
+
 
         if(len(list(group))==0):
+            print("Grupa pusta. Pomijam")
             return
 
         group.sort(key=lambda Player: Player.score,
                            reverse=True)
 
         if(not center):
+            print("Grupa nie srodkowa")
 
             if (len(group) % 2):
+                print("Liczba nieparzysta")
                 drop = group.pop(-1)
+                print("Przenosze gracza: ",drop)
                 if((len(source)-1)==groupNo):
-                    self._g0.append(drop)
+                    print("Ostatnia grupa przed centrum. Przenosze do centrum")
+                    self._g0[0].append(drop)
+                    print("Grupa po przeniesieniu: ",group)
+                    print("Centrum: ",self._g0)
                 else:
+                    print("Przenosze grupe wyzej")
                     source[groupNo+1].append(drop)
+                    print("Grupa po przeniesieniu: ", group)
+                    print("Centrum: ", source[groupNo+1])
 
             for p in group:
+                print("Sprawdzam czy maja przeciwnikow")
                 opponents = copy.deepcopy(group)
                 opponents.remove(p)
                 if(not p.can_play(opponents)):
+                    print("Gracz nie ma przeciwnika: ",p)
                     drop = group.pop(-1)
                     if ((len(source) - 1) == groupNo):
-                        self._g0.append(drop)
+                        print("Ostatnia grupa, przenosze do centrum")
+                        self._g0[0].append(drop)
+                        print("Grupa po przeniesieniu: ", group)
+                        print("Centrum: ", self._g0)
                     else:
-                        source[groupNo + 1].append(drop)
+                        print("Przenosze wyzej")
+                        source[groupNo+1].append(drop)
+                        print("Grupa po przeniesieniu: ", group)
+                        print("Centrum: ", source[groupNo+1])
 
             if (len(group) == 1):
+                print("Grupa ma 1 gracza: ", group)
                 if ((len(source) - 1) == groupNo):
-                    self._g0 += group
+                    self._g0[0] += group
+                    print("Przenioslem do 0: ",self._g0)
                 else:
-                    source[groupNo + 1] += group
+                    source[groupNo+1] += group
+                    print("Przenioslem wyzej: ",source[groupNo+1])
                 return
 
         else:
+            print("Grupa srodkowa")
             if(len(group)==1):
+                print("Jeden gracz w srodkowej")
                 if(self._groupsNo % 2 == 0):
                     dropTo = self._g1[-1]
+                    print("Parzyste grupy, przenosze do top: ", dropTop)
                 else:
                     dropTo = self._g2[-1]
+                    print("Nieparzyste grupy, przenosze do bottom: ",dropTo)
 
                 dropTo += group
+                print("Po przeniesieniu: ",dropTo)
                 self._checkPlayersAgain = True
+                print("Ustawiam checkP i koniec")
                 return
 
             canPlay = True
+            print("Sprawdzam czy moga grac ze soba")
             for p in group:
                 if(not p.can_play(group)):
+                    print("Gracz nie ma przciwnikow: ",p)
                     canPlay = False
             if(not canPlay):
                 if (self._groupsNo % 2 == 0):
                     dropTo = self._g1[-1]
+                    print("Parzyste grupy, przenosze do top: ", dropTop)
                 else:
                     dropTo = self._g2[-1]
+                    print("Nieparzyste grupy, przenosze do bottom: ", dropTop)
 
                 dropTo += group
+                print("Po przeniesieniu: ", dropTo)
                 self._checkPlayersAgain = True
+                print("Ustawiam checkP")
 
     def _createGroupsAgaing(self):
-        groups = list()
+        print("Again")
+        groups = []
         groups += self._g1
         groups += self._g2
         groups += self._g0
+
 
         self._groupsNo = len(groups)
 
@@ -194,6 +221,7 @@ class SwissEngine:
     def _pairingGroups(self):
 
         while True:
+            self._checkPlayersAgain = False
             #Pair top groups
             for index, item in enumerate(self._g1):
                 self._preparePlayers(1,index)
@@ -210,6 +238,11 @@ class SwissEngine:
                 self._createGroupsAgaing()
             else:
                 break
+        print("----------------")
+        print('ostatecznie')
+        print('g1: ',self._g1)
+        print('g2: ',self._g2)
+        print('g0: ',self._g0)
 
     def _checkBye(self):
         if(len(self._players) % 2):
