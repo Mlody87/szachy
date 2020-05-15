@@ -18,6 +18,7 @@ class SwissEngine:
         self._g1 = []
         self._g2 = []
         self._g0 = []
+        self._pairs = []
 
         if(self._round==1):
             self._firstRound()
@@ -223,6 +224,55 @@ class SwissEngine:
         return self._groups
 
 
+    def _pairGroup(self, group):
+        print("Paruje:",group)
+
+        group.sort(key=lambda Player: Player.rating, reverse=True)
+        center = math.ceil(len(group)/2)
+        a1=group[:center]
+        b1=group[center:]
+        s1 = copy.deepcopy(a1)
+        s1.reverse()
+        s2 = copy.deepcopy(b1)
+        pairs = []
+
+        players = group
+        others = s2 + s1
+
+        while True:
+            if(len(others)==0):
+                break
+
+            p1 = players[0]
+            if(p1 in others):
+                others.remove(p1)
+                paired = False
+                for index, item in enumerate(others):
+                    if(p1.can_play([item])):
+                        pair=(p1,item)
+                        paired = True
+                        pairedId = index
+                        break
+                if(paired):
+                    del others[pairedId]
+                    del players[0]
+                    pairs.append(pair)
+                else:
+                    print("Nie moge znalezc pary w grupie dla: ",item)
+                    break
+            else:
+                del players[0]
+
+        print("Pairs in group:")
+        for x in pairs:
+            print(x)
+
+
+    def _pairing(self):
+        for index, item in enumerate(self._groups):
+            self._pairGroup(item)
+
+
     def _checkBye(self):
         if(len(self._players) % 2):
             self._byePlayer = self._players.pop(-1)
@@ -234,6 +284,7 @@ class SwissEngine:
                            reverse=True)
         self._checkBye()
         self._createGroups()
-
-        firstpairing = self._prepareGroups()
+        self._prepareGroups()
+        #firstpairing = self._prepareGroups()
         #self._groups also global with groups
+        self._pairing()
