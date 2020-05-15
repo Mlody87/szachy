@@ -14,6 +14,7 @@ class SwissEngine:
         self._reverseGroups = False
         self._reverseList = []
         self._groupsNo = None
+        self._groups = None
         self._g1 = []
         self._g2 = []
         self._g0 = []
@@ -156,6 +157,7 @@ class SwissEngine:
             if len(self._reverseList[index]) == 0:
                 dl.append(index)
 
+        dl.reverse()
         for x in dl:
             del self._reverseList[x]
 
@@ -173,6 +175,30 @@ class SwissEngine:
                     else:
                         self._reverseList[index+1] += group
                         self._reverseList[index].clear()
+        dl = []
+        for index, item in enumerate(self._reverseList):
+            if len(self._reverseList[index]) == 0:
+                dl.append(index)
+
+        dl.reverse()
+        for x in dl:
+            del self._reverseList[x]
+
+    def _finalCreateGroups(self):
+        if(self._reverseGroups):
+            return self._reverseList
+        else:
+            result = []
+            for index, item in enumerate(self._g1):
+                if(len(item)>0):
+                    result.append(item)
+            for index, item in enumerate(self._g0):
+                if(len(item)>0):
+                    result.append(item)
+            for index, item in enumerate(self._g2):
+                if(len(item)>0):
+                    result.append(item)
+            return result
 
     def _prepareGroups(self):
 
@@ -193,15 +219,11 @@ class SwissEngine:
             self._prepareReversedList()
             self._checkGroupsAgain()
 
-            print(self._reverseList)
+        self._groups = self._finalCreateGroups()
 
-
-
-        else:
-            return #zwroc ulozone grupy
-
-
-
+        print("Final groups:")
+        for index, item in enumerate(self._groups):
+            print(index, " :",item)
 
 
     def _checkBye(self):

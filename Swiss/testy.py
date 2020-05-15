@@ -13,6 +13,7 @@ input_players = (
                 score=0,
 pairing_no=2,
                opponents=(1,3,4,5,7,8,9,),
+        #opponents=(1,),
                colour_hist=(-1,),
                rating=2200),
         Player(name='Qba',
