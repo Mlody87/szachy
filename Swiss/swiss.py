@@ -138,6 +138,41 @@ class SwissEngine:
         if (canPlay == False):
             self._reverseGroups = True
 
+    def _prepareReversedList(self):
+        self._reverseList = []
+        self._reverseList.append(self._g0[0])
+
+        self._g1.reverse()
+
+        while self._g2:
+            p2 = self._g2.pop(0)
+            self._reverseList.append(p2)
+        while self._g1:
+            p1 = self._g1.pop(0)
+            self._reverseList.append(p1)
+
+        dl = []
+        for index, item in enumerate(self._reverseList):
+            if len(self._reverseList[index]) == 0:
+                dl.append(index)
+
+        for x in dl:
+            del self._reverseList[x]
+
+    def _checkGroupsAgain(self):
+        for index, item in enumerate(self._reverseList):
+            group = item
+
+            for i, it in enumerate(group):
+                opponents = copy.deepcopy(group)
+                opponents.remove(it)
+                if (it.can_play(opponents) == False):
+                    if(index==(len(self._reverseList)-1)):
+                        print("Ostatnia grupa i nie da sie sparowac graczy. Kojarzenie niemozliwe")
+                        return
+                    else:
+                        self._reverseList[index+1] += group
+                        self._reverseList[index].clear()
 
     def _prepareGroups(self):
 
@@ -154,18 +189,17 @@ class SwissEngine:
         print("g2:",self._g2)
         print(self._reverseGroups)
 
-        self._reverseList =  list(interleave([self._g0,self._g2,self._g1]))
+        if(self._reverseGroups):
+            self._prepareReversedList()
+            self._checkGroupsAgain()
 
-        dl = []
-        for index, item in enumerate(self._reverseList):
-            if len(self._reverseList[index])==0:
-                dl.append(index)
+            print(self._reverseList)
 
-        for x in dl:
-            del self._reverseList[x]
 
-        for index, item in enumerate(self._reverseList):
-            print(index,": ",item)
+
+        else:
+            return #zwroc ulozone grupy
+
 
 
 
