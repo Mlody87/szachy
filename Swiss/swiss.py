@@ -210,11 +210,6 @@ class SwissEngine:
 
         self._prepareCenter()
 
-        print("g1:",self._g1)
-        print("g0:",self._g0)
-        print("g2:",self._g2)
-        print(self._reverseGroups)
-
         if(self._reverseGroups):
             self._prepareReversedList()
             self._checkGroupsAgain()
@@ -224,6 +219,8 @@ class SwissEngine:
         print("Final groups:")
         for index, item in enumerate(self._groups):
             print(index, " :",item)
+
+        return self._groups
 
 
     def _checkBye(self):
@@ -239,3 +236,4 @@ class SwissEngine:
         self._createGroups()
 
         firstpairing = self._prepareGroups()
+        #self._groups also global with groups
