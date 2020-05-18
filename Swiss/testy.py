@@ -68,5 +68,3 @@ pairing_no=9,
 
 engine = SwissEngine(2, input_players)
 
-
-
