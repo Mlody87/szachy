@@ -56,17 +56,27 @@ class ScoreBracket:
         return result
 
     def checkPairs(self):
-        for index, pair in enumerate(self.pairs):
-            if(pair[0].can_play([pair[1]])==False):
-                result = self.searchOpponent(index, pair)
-                print("Nie moga grac: ",pair)
-                print("Ale znalazlem pare")
+        #for index, pair in enumerate(self.pairs):
+         index=0
+         while index<= len(self.pairs)-1:
+                pair = self.pairs[index]
+                if(pair[0].can_play([pair[1]])==False):
+                    print("Nie moga grac: ", pair)
+                    result = self.searchOpponent(index, pair)
+                    print("Ale znalazlem pare")
+                index+=1
 
     def pairBracket(self):
         self.players.sort(key=lambda Player: Player.rating, reverse=True)
         self.createPairs()
+        print("Zawodnicy")
+        for x in self.players:
+            print(x)
+        print("Pary")
+        for x in self.pairs:
+            print(x)
         self.checkPairs()
-
+        print("Wynik:")
         for x in self.pairs:
             print(x)
 
