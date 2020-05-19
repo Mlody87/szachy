@@ -62,31 +62,44 @@ class Player:
         return self._opponents
 
     @property
-    def expected_colour(self):
-        res = sum(self._colour_hist)
-        return res
-
-    @property
     def strong_of_preference(self):
-        sum = abs(sum(self._colour_hist))
-        return sum
+        suma = abs(sum(self._colour_hist))
+        return suma
 
     @property
     def expected_colour(self):
-        colours = list(self._colour_hist)
-        exp = colours[-1]
-        if exp > 0:
-            return -1
-        if exp<0 :
-            return 1
-        if exp==0:
-            return 0
+        col = 1
+        expected = list(self._colour_hist)[-1]
 
-    def can_play(self, ops):
-        can = False
-        for op in ops:
-            if(op.pairing_no not in self._opponents):
-                can = True
+        if expected > 0:
+            col = -1
+        elif expected < 0:
+            col = 1
+        else:
+            lastcol = 1
+            for c in reversed(self._colour_hist):
+                if c != 0:
+                    lastcol = c
+                    break
+            if lastcol > 0:
+                col = -1
+            elif lastcol < 0:
+                col = 1
+
+        return col
+
+
+    @property
+    def paused(self):
+        if(0 in self._opponents):
+            return True
+        else:
+            return False
+
+    def can_play(self, opponent):
+        can = True
+        if(opponent.pairing_no in self._opponents):
+            can = False
         return can
 
     def pair(self, opponent, mycolour):
