@@ -9,6 +9,8 @@ from swissdutch.dutch import DutchPairingEngine
 from swissdutch.constants import FideTitle, Colour, FloatStatus
 from swissdutch.player import Player
 import copy
+from swiss import SwissEngine
+from player import Player
 
 
 class tournamentControler(threading.Thread):
@@ -26,7 +28,7 @@ class tournamentControler(threading.Thread):
         self.rounds = {}
         self.gamesId = set()
 
-        self.engine = DutchPairingEngine()
+        self.engine = None
 
         self.create(self.id)
 
@@ -110,7 +112,6 @@ class tournamentControler(threading.Thread):
                 player['name'] = row['login']
                 player['rating'] = row['rank']
                 player['score'] = 0
-                player['float_status'] = FloatStatus.none
                 player['opponents'] = ()
                 player['colour_hist'] = ()
 
@@ -131,7 +132,6 @@ class tournamentControler(threading.Thread):
                             rating=self.players[k]['rating'],
                             pairing_no=self.players[k]['pairing_no'],
                             score=self.players[k]['score'],
-                            float_status=self.players[k]['float_status'],
                             opponents=self.players[k]['opponents'],
                             colour_hist=self.players[k]['colour_hist']
                             )
@@ -152,7 +152,6 @@ class tournamentControler(threading.Thread):
 
             self.players[key]['opponents'] = row.opponents
             self.players[key]['colour_hist'] = row.colour_hist
-            self.players[key]['float_status'] = row.float_status
             self.players[key]['score'] = row.score
 
     def notAdded(self, pair, pairs):
@@ -170,7 +169,7 @@ class tournamentControler(threading.Thread):
 
             if (row.opponents[-1] != 0):
                 myId = self.getPlayerKey(row.pairing_no)
-                mycolor = row.colour_hist[-1].value
+                mycolor = row.colour_hist[-1]
                 opponentId = self.getPlayerKey(row.opponents[-1])
                 if (mycolor > 0):
                     pair = (myId, opponentId)
@@ -307,15 +306,11 @@ class tournamentControler(threading.Thread):
         self.tourInfo['round'] += 1
 
         while self.tourInfo['round'] <= self.tourInfo['rounds']:
-            #if(self.tourInfo['round']==self.tourInfo['rounds']):
-             #   last = True
-            #else:
-             #   last = False
 
             print("Rusza runda: ",self.tourInfo['round'])
 
             self.prepareInputPlayers()
-            round = self.engine.pair_round(self.tourInfo['round'], self.input_players)
+            round = SwissEngine(self.tourInfo['round'], self.input_players)
             print(round)
 
             self.updatePlayers(round)
