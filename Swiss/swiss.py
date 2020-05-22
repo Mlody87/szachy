@@ -52,12 +52,9 @@ class SwissEngine:
             odd, even = (p1, p2) if p1.pairing_no % 2 else (p2, p1)
             odd.pair(even.pairing_no, 1)
             even.pair(odd.pairing_no, -1)
-            self.printPlayer(p1)
-            self.printPlayer(p2)
 
         if s2:
             s2[0].bye()
-            self.printPlayer(s2[0])
 
         return self.players
 
@@ -69,13 +66,9 @@ class SwissEngine:
                     break
 
     def preparePairs(self):
-        self.players.sort(key=lambda Player: Player.rating, reverse=True)
+        self.players.sort(key=lambda Player: Player.score, reverse=True)
         other_players = copy.deepcopy(self.players)
         pairs = []
-
-        #if (len(self.players) % 2 != 0):
-        #    id = self.pickBye()
-        #    del other_players[id]
 
         rm = -1
         while True:
@@ -110,7 +103,6 @@ class SwissEngine:
 
     def findBye(self,p):
         pairs = p
-        print("Szukam bye")
 
         if (self.byePlayer.paused==False):
             self.byePlayer.bye()
@@ -119,21 +111,13 @@ class SwissEngine:
             wasChecked = []
             index=0
             while True:
-                print("Pary")
-                for x in pairs:
-                    print(x)
-                print("Pauzuje: ",self.byePlayer)
-                print("Juz sprawdzane: ",wasChecked)
 
                 if(self.byePlayer.paused):
-                    print("Juz pauzowal")
                     if(index>len(pairs)):
                         print("NIE ZNALEZIONO OSTATECZNIE BYE")
                         break
                     for i in range(0, len(pairs)):
-                        print("Sprawdzam pare: ",pairs[i])
                         if(pairs[i][0].can_play(self.byePlayer) and (pairs[i][1].pairing_no not in wasChecked)):
-                            print("Może grać: ", pairs[i][0])
                             t1 = copy.deepcopy(pairs[i][1])
                             t2 = copy.deepcopy(self.byePlayer)
                             pairs[i][1] = t2
@@ -141,7 +125,6 @@ class SwissEngine:
                             wasChecked.append(self.byePlayer.pairing_no,)
                             break
                         if (pairs[i][1].can_play(self.byePlayer) and (pairs[i][0].pairing_no not in wasChecked)):
-                            print("Może grać: ", pairs[i][1])
                             t1 = copy.deepcopy(pairs[i][0])
                             t2 = copy.deepcopy(self.byePlayer)
                             pairs[i][0] = t2
@@ -150,10 +133,6 @@ class SwissEngine:
                             break
                 else:
                     self.byePlayer.bye()
-                    print("Ostateczny bye: ",self.byePlayer)
-                    print("Pary")
-                    for x in pairs:
-                        print(x)
                     return pairs
                     break
                 index += 1
@@ -165,13 +144,11 @@ class SwissEngine:
 
         for index, pair in enumerate(pairs):
             if(pair[0].can_play(pair[1]) == False):
-                print("Para nie może grać: ",pair)
                 found=False
                 for i in range(index+1, len(pairs)):
                     p = pairs[i]
-                    print("Sprawdzam pare: ",p)
                     if(pair[0].can_play(p[1]) and pair[1].can_play(p[0])):
-                        print("Moga grac w poziomie")
+                        #Moga grac w poziomie
                         t1 = copy.deepcopy(pair[1])
                         t2 = copy.deepcopy(p[1])
                         pairs[index][1] = t2
@@ -182,7 +159,7 @@ class SwissEngine:
                         break
                     else:
                         if (pair[0].can_play(p[0]) and pair[1].can_play(p[1])):
-                            print("Mogą grać w pionie")
+                            #Mogą grać w pionie
                             t1 = copy.deepcopy(p[0])
                             t2 = copy.deepcopy(pair[1])
                             pairs[index][1] = t1
@@ -194,14 +171,14 @@ class SwissEngine:
                 if(found==False):
                     if(self.byePlayer != None):
                         if(pair[0].can_play(self.byePlayer)):
-                            print("Pierwszy moze grac z pauza")
+                            #Pierwszy moze grac z pauza
                             t1 = copy.deepcopy(pair[1])
                             t2 = copy.deepcopy(self.byePlayer)
                             pairs[index][1] = t2
                             self.byePlayer = t1
                             found = True
                         elif(pair[1].can_play(self.byePlayer)):
-                            print("Drugi moze grac z pauza")
+                            #Drugi moze grac z pauza
                             t1 = copy.deepcopy(pair[0])
                             t2 = copy.deepcopy(self.byePlayer)
                             pairs[index][0] = t2
@@ -285,20 +262,16 @@ class SwissEngine:
         pairs = self.checkPairs(pairs)
         pairs = self.assignColours(pairs)
 
-        #TESTY
-        randomScore = [[1,0], [0,1],[0.5,0.5]]
-        for x in pairs:
-            wynik = random.randint(0, 2)
-            x[0]._score += randomScore[wynik][0]
-            x[1]._score += randomScore[wynik][1]
-            self.printPlayer(x[0])
-            self.printPlayer(x[1])
-        self.printPlayer(self.byePlayer)
-
         players = []
-        players.append(self.byePlayer)
+        if(self.byePlayer != None):
+            players.append(self.byePlayer)
         for x in pairs:
             players.append(x[0])
             players.append(x[1])
 
+        self.players.clear()
+        self.players = players
 
+        self.players.sort(key=lambda Player: Player.score, reverse=True)
+
+        return self.players
