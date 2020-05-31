@@ -39,7 +39,7 @@
       <recent name="C:\Users\kabat\OneDrive\Pulpit\Refaktor\Serwer" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.serwer">
+  <component name="RunManager" selected="Python.testy (1)">
     <configuration name="dopasowanie_kolorow_copy" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Serwer" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -140,8 +140,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.serwer" />
         <item itemvalue="Python.testy (1)" />
+        <item itemvalue="Python.serwer" />
         <item itemvalue="Python.dopasowanie_kolorow_copy" />
         <item itemvalue="Python.szwajcar" />
         <item itemvalue="Python tests.Unittests in szwajcar.py" />
@@ -174,22 +174,22 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="740" y="278" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1589299119359" />
-    <state width="1899" height="273" key="GridCell.Tab.0.bottom" timestamp="1590142065329">
+    <state width="1899" height="273" key="GridCell.Tab.0.bottom" timestamp="1590926568636">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="273" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1590142065329" />
-    <state width="1899" height="273" key="GridCell.Tab.0.center" timestamp="1590142065329">
+    <state width="1899" height="273" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1590926568636" />
+    <state width="1899" height="273" key="GridCell.Tab.0.center" timestamp="1590926568636">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="273" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1590142065329" />
-    <state width="1899" height="273" key="GridCell.Tab.0.left" timestamp="1590142065329">
+    <state width="1899" height="273" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1590926568636" />
+    <state width="1899" height="273" key="GridCell.Tab.0.left" timestamp="1590926568635">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="273" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1590142065329" />
-    <state width="1899" height="273" key="GridCell.Tab.0.right" timestamp="1590142065329">
+    <state width="1899" height="273" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1590926568635" />
+    <state width="1899" height="273" key="GridCell.Tab.0.right" timestamp="1590926568636">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="273" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1590142065329" />
+    <state width="1899" height="273" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1590926568636" />
     <state width="1899" height="348" key="GridCell.Tab.1.bottom" timestamp="1589411447297">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>

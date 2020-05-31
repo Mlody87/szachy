@@ -315,10 +315,21 @@ class tournamentControler(threading.Thread):
 
             self.updatePlayers(round)
 
-            # zapisz do bazy
-
             roundInfo = self.createGames(round)
             self.rounds[self.tourInfo['round']] = roundInfo
+
+            pi = json.dumps(self.players)
+            ri = json.dumps(roundInfo)
+
+            dbconn = mariadb.connect(user=conf.dbconf['user'], password=conf.dbconf['password'],
+                                     database=conf.dbconf['db'])
+            cursor = dbconn.cursor(buffered=True)
+
+            cursor.execute(
+                "INSERT INTO rounds (tournamentid, roundnr, details, tables) VALUES (%s,%s,%s,%s)",
+                (self.tourInfo['id'], self.tourInfo['round'], pi, ri))
+            dbconn.commit()
+            dbconn.close()
 
             time.sleep(5)
 

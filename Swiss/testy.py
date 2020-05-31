@@ -35,5 +35,7 @@ colour_hist= (-1, 1) ,
 
 
 )
+
 result_players = SwissEngine(3, input_players)
-#wynik2 = round(math.log2(g))+round(math.log2(m))
+wynik2 = round(math.log2(g))+round(math.log2(m))
+
