@@ -10,18 +10,22 @@ class RegisterUser:
         clean = re.compile('<.*?>')
         return re.sub(clean, '', text)
 
-    def register(self, email, login, password):
+    def register(self, email, login, password, name, surname):
 
         rlogin = self.remove_html_tags(login)
+        rname = self.remove_html_tags(name)
+        rsurname = self.remove_html_tags(surname)
         rpassword = password
         remail = email
 
         info = {}
         info['login'] = ''
         info['email'] = ''
+        info['name'] = ''
+        info['surname'] = ''
         info['type'] = 'userregistration'
 
-        if((rlogin=='')or(rpassword=='')or(remail=='')):
+        if((rlogin=='')or(rpassword=='')or(remail=='')or(rname=='')or(rsurname=='')):
             return
 
 
@@ -50,10 +54,10 @@ class RegisterUser:
             hash.update(('%s%s' % (rsalt, rpassword)).encode('utf-8'))
             rpassword = hash.hexdigest()
 
-            query = """INSERT INTO users (login, pass, email, salt) 
-                                        VALUES (%s, %s, %s, %s) """
+            query = """INSERT INTO users (login, name, surname, pass, email, salt) 
+                                        VALUES (%s, %s, %s, %s, %s, %s) """
 
-            recordTuple = (rlogin, rpassword, remail, rsalt)
+            recordTuple = (rlogin, rname, rsurname, rpassword, remail, rsalt)
             cursor.execute(query, recordTuple)
 
             dbconn.commit()

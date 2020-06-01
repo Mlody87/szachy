@@ -1,0 +1,161 @@
+
+<script>
+
+		establish_connection();
+		
+		ws.onmessage = function (event) {
+			var obj = JSON.parse(event.data);
+			console.log(obj);
+			
+			if(obj["type"] == "connected")
+			{
+				connected(obj['connectionId']);
+			}
+			if(obj["type"] == "ping")
+			{
+				sendPong();
+			}
+			
+			if(obj['type']=='userregistration' && obj['result']=='true')
+			{
+				document.getElementById("message").innerHTML = "<strong>Zarejestrowano! Dziękujemy</strong>";
+				document.getElementById("message").style.color = "green";
+				document.getElementById("mname").innerHTML = '';
+				document.getElementById("msurname").innerHTML = '';
+				document.getElementById("mlogin").innerHTML = '';
+				document.getElementById("memail").innerHTML = '';
+				document.getElementById("mpass").innerHTML = '';
+				document.getElementById("login").value = '';
+				document.getElementById("password").value = '';
+				document.getElementById("email").value = '';
+			}
+			if(obj['type']=='userregistration' && obj['result']=='false')
+			{
+				document.getElementById("message").innerHTML = "<strong>Coś poszło nie tak!</strong>";
+				document.getElementById("message").style.color = "red";
+				
+				if(obj['login'] != '') 
+				{
+					document.getElementById("mlogin").innerHTML = obj['login'];
+				}
+				else
+				{
+					document.getElementById("mlogin").innerHTML = '';
+				}
+				if(obj['name'] != '') 
+				{
+					document.getElementById("mname").innerHTML = obj['name'];
+				}
+				else
+				{
+					document.getElementById("mname").innerHTML = '';
+				}
+				if(obj['surname'] != '') 
+				{
+					document.getElementById("msurname").innerHTML = obj['surname'];
+				}
+				else
+				{
+					document.getElementById("msurname").innerHTML = '';
+				}
+				if(obj['lemail'] != '') 
+				{
+					document.getElementById("memail").innerHTML = obj['email'];
+				}
+				else
+				{
+					document.getElementById("memail").innerHTML = '';
+				}
+			}
+			
+
+		}
+		
+function validateEmail(st) 
+    {
+        var re = /\S+@\S+\.\S+/;
+        return re.test(st);
+    }
+		
+function register() {
+
+var login = document.getElementById("login").value;
+var name = document.getElementById("name").value;
+var surname = document.getElementById("surname").value;
+var pass = document.getElementById("password").value;
+var mail = document.getElementById("email").value;
+var ok = true;
+
+document.getElementById("mlogin").innerHTML = '';
+document.getElementById("mname").innerHTML = '';
+document.getElementById("msurname").innerHTML = '';
+document.getElementById("memail").innerHTML = '';
+document.getElementById("mpass").innerHTML = '';
+
+if(login.length<4)
+{
+	document.getElementById("mlogin").innerHTML = "Login musi mieć co najmniej 4 znaki";
+	ok=false;
+}
+if(name.length<3)
+{
+	document.getElementById("mname").innerHTML = "Imie musi mieć co najmniej 3 znaki";
+	ok=false;
+}
+if(surname.length<3)
+{
+	document.getElementById("msurname").innerHTML = "Nazwisko musi mieć co najmniej 3 znaki";
+	ok=false;
+}
+if(validateEmail(mail) != true)
+{
+	document.getElementById("memail").innerHTML = "Błędny e-mail";
+	ok=false;
+}
+if(pass.length<8)
+{
+	document.getElementById("mpass").innerHTML = "Hasło musi mieć co najmniej 8 znaków";
+	ok=false;
+}
+
+if(ok) {
+	ws.send(JSON.stringify({
+	'connectionId':connectionId,
+	'type':'userregistration',
+	'login':login,
+	'name':name,
+	'surname':surname,
+	'password':pass,
+	'email':mail
+	}));
+}
+
+}
+
+
+</script>
+	
+
+			<p id="message"></p>
+			
+		<label id="mname"style="color:red"></label>
+
+		<input id="name" name="name" class="form-input" type="text" maxlength="255" value=""/ placeholder="Imie"> 
+		
+		<label id="msurname"style="color:red"></label>
+
+		<input id="surname" name="surname" class="form-input" type="text" maxlength="255" value=""/ placeholder="Nazwisko"> 
+		
+		<label id="mlogin"style="color:red"></label>
+
+		<input id="login" name="login" class="form-input" type="text" maxlength="255" value=""/ placeholder="Nazwa użytkownika"> 
+
+		<label id="memail" style="color:red"></label>
+
+		<input id="email" name="email" class="form-input" type="text" maxlength="255" value=""/placeholder="E-mail"> 
+
+		<label id="mpass" style="color:red"></label>
+
+		<input id="password" name="password" class="form-input" type="password" maxlength="255" value=""/placeholder="Hasło"> 
+
+		<div class="btn green" onclick="register();"><strong>Zarejestruj</strong></div>

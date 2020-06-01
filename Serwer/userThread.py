@@ -98,7 +98,7 @@ class userThread(threading.Thread):
 
     def userregistration(self, msg):
         register = RegisterUser()
-        result = register.register(msg['email'], msg['login'], msg['password'])
+        result = register.register(msg['email'], msg['login'], msg['password'], msg['name'], msg['surname'])
         json_data = json.dumps(result)
         self.addSendMsg(json_data)
 
